@@ -1,5 +1,16 @@
-import { CoinbasePayTxStatus, consts } from "@guildxyz/types"
 import { NextApiHandler } from "next"
+
+const CoinbasePayChains = {
+  ethereum: 1,
+  arbitrum: 42161,
+  "avalanche-c-chain": 43114,
+  celo: 42220,
+  kava: 2222,
+  optimism: 10,
+  gnosis: 100,
+  base: 8453,
+  polygon: 137,
+}
 
 const COINBASE_PAY_API_HEADERS = {
   "CBPAY-APP-ID": process.env.NEXT_PUBLIC_COINBASE_PAY_APPID,
@@ -19,20 +30,18 @@ const handler: NextApiHandler = async (req, res) => {
 
   const txStatus = data?.transactions?.[0]
 
-  const chainName: keyof typeof consts.CoinbasePayChains = txStatus?.purchase_network
+  const chainName: keyof typeof CoinbasePayChains = txStatus?.purchase_network
 
-  const mapped: CoinbasePayTxStatus = {
+  const mapped = {
     status: txStatus.status.replace("ONRAMP_TRANSACTION_STATUS_", ""),
     currency: txStatus?.purchase_currency,
     txHash: txStatus?.tx_hash,
     amount: (txStatus?.purchase_amount?.value as string)?.replace(/0+$/, ""),
-    chainId: txStatus?.purchase_network
-      ? consts.CoinbasePayChains[chainName]
-      : undefined,
+    chainId: txStatus?.purchase_network ? CoinbasePayChains[chainName] : undefined,
     createdAt: txStatus?.created_at,
   }
 
-  return mapped
+  res.status(200).json(mapped)
 }
 
 export default handler
