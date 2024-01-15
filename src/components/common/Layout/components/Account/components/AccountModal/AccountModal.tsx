@@ -100,7 +100,9 @@ const AccountModal = () => {
 
   const recentPayTx = isTxRecent ? payTx : null
 
-  txStatuses.add(recentPayTx.data?.status)
+  if (recentPayTx?.data?.status) {
+    txStatuses.add(recentPayTx?.data?.status)
+  }
 
   const freshSuccess =
     recentPayTx?.data?.status === "SUCCESS" && txStatuses.has("IN_PROGRESS")
