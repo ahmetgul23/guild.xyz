@@ -42,6 +42,8 @@ const isRecent = (date: Date, differenceMs = 1000 * 60 * 15) => {
   return diff < differenceMs
 }
 
+const txStatuses = new Set<string>()
+
 const AccountModal = () => {
   const {
     address,
@@ -97,6 +99,11 @@ const AccountModal = () => {
     !!payTx.data?.createdAt && isRecent(new Date(payTx.data.createdAt))
 
   const recentPayTx = isTxRecent ? payTx : null
+
+  txStatuses.add(recentPayTx.data?.status)
+
+  const freshSuccess =
+    recentPayTx?.data?.status === "SUCCESS" && txStatuses.has("IN_PROGRESS")
 
   return (
     <Modal
@@ -177,15 +184,13 @@ const AccountModal = () => {
                       ? "Please switch to an EVM wallet"
                       : recentPayTx?.data?.status === "IN_PROGRESS"
                       ? "Transaction in progress"
-                      : recentPayTx?.data?.status === "SUCCESS"
+                      : freshSuccess
                       ? "Transaction successful"
                       : "Top up wallet"
                   }
                 >
                   <IconButton
-                    isDisabled={
-                      type !== "EVM" || recentPayTx?.data?.status === "SUCCESS"
-                    }
+                    isDisabled={type !== "EVM" || freshSuccess}
                     size="sm"
                     colorScheme={
                       {
@@ -199,16 +204,7 @@ const AccountModal = () => {
                       isLoading || recentPayTx?.data?.status === "IN_PROGRESS"
                     }
                     onClick={() => onOpen(address)}
-                    icon={
-                      <Icon
-                        as={
-                          recentPayTx?.data?.status === "SUCCESS"
-                            ? Check
-                            : UploadSimple
-                        }
-                        p="1px"
-                      />
-                    }
+                    icon={<Icon as={freshSuccess ? Check : UploadSimple} p="1px" />}
                     aria-label="Top up wallet"
                   />
                 </Tooltip>
